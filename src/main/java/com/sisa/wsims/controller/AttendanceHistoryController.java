@@ -19,9 +19,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 /**
- * Read-only attendance history for Student and Parent (business rule 5), plus the
- * Student's correction-request submission. Access is already scoped by SecurityConfig's
- * /student/** and /parent/** rules.
+ - Read-only attendance history for Student and Parent (business rule 5), plus the
+ - Student's correction-request submission. Access is already scoped by SecurityConfig's
+ - /student/** and /parent/** rules.
  */
 @Controller
 public class AttendanceHistoryController {
@@ -37,11 +37,12 @@ public class AttendanceHistoryController {
         this.attendanceService = attendanceService;
     }
 
-    //helper method(idntify current user)
+    // Helper method to get the currently logged-in user
     private User currentUser(Authentication authentication) {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
+    // Handles the student attendance history view page
     @GetMapping("/student/attendance")
     public String ownHistory(Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -59,6 +60,7 @@ public class AttendanceHistoryController {
         return "student/attendance";
     }
 
+    // Processes student requests for attendance record corrections
     @PostMapping("/student/attendance/correction-request")
     public String requestCorrection(@ModelAttribute AttendanceCorrectionForm form,
                                     Authentication authentication, RedirectAttributes redirectAttributes) {
@@ -73,6 +75,7 @@ public class AttendanceHistoryController {
         return "redirect:/student/attendance";
     }
 
+    // Handles the parent view for linked children's attendance history
     @GetMapping("/parent/child-attendance")
     public String childrenHistory(Authentication authentication, Model model) {
         User user = currentUser(authentication);
