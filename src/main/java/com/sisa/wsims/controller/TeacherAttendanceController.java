@@ -17,10 +17,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Teacher (and Principal, view-only) desk for Attendance Management (report FR-05/FR-06,
- * section 6.4). Access is already scoped to PRINCIPAL/TEACHER by SecurityConfig's
- * /teacher/** rule; fine-grained "only the Class Teacher for this exact class" enforcement
- * happens in AttendanceService and surfaces here as a 403.
+ - Teacher (and Principal, view-only) desk for Attendance Management (report FR-05/FR-06,
+ - section 6.4). Access is already scoped to PRINCIPAL/TEACHER by SecurityConfig's
+ - /teacher/** rule; fine-grained "only the Class Teacher for this exact class" enforcement
+ - happens in AttendanceService and surfaces here as a 403.
  */
 @Controller
 @RequestMapping("/teacher/attendance")
@@ -29,11 +29,13 @@ public class TeacherAttendanceController {
     private final UserRepository userRepository;
     private final AttendanceService attendanceService;
 
+    // Wiring up repositories and services using constructor injection
     public TeacherAttendanceController(UserRepository userRepository, AttendanceService attendanceService) {
         this.userRepository = userRepository;
         this.attendanceService = attendanceService;
     }
 
+    // Grab the currently logged-in user details from Spring Security authentication
     private User currentUser(Authentication authentication) {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
@@ -54,6 +56,8 @@ public class TeacherAttendanceController {
 
         boolean canMark;
         String resolvedClassName;
+
+        // Principal can view all classes (read-only), but teachers can only manage their assigned class
         if (user.getRole() == Role.PRINCIPAL) {
             resolvedClassName = className;
             canMark = false;
@@ -74,6 +78,7 @@ public class TeacherAttendanceController {
         List<Student> roster = attendanceService.rosterFor(resolvedClassName);
         Map<String, AttendanceRecord> onDate = attendanceService.recordsByStudentFor(resolvedClassName, resolvedDate);
 
+        // Build the form to mark attendance for each student in the class list
         AttendanceMarkForm form = new AttendanceMarkForm();
         for (Student student : roster) {
             AttendanceMarkForm.Entry entry = new AttendanceMarkForm.Entry();
@@ -97,6 +102,7 @@ public class TeacherAttendanceController {
         User user = currentUser(authentication);
         LocalDate resolvedDate = parseDateOrToday(date, LocalDate.now());
         try {
+            // Save or update attendance records submitted by the teacher
             attendanceService.markOrUpdate(className, resolvedDate, form, user);
             redirectAttributes.addFlashAttribute("success", "Attendance saved for " + className + " on " + resolvedDate + ".");
         } catch (ResponseStatusException rse) {
@@ -107,6 +113,7 @@ public class TeacherAttendanceController {
         return "redirect:/teacher/attendance?className=" + className + "&date=" + resolvedDate;
     }
 
+    // Helper method to parse the date string safely, falling back to today if invalid or empty
     private LocalDate parseDateOrToday(String raw, LocalDate fallback) {
         if (raw == null || raw.isBlank()) return fallback;
         try {
@@ -116,6 +123,7 @@ public class TeacherAttendanceController {
         }
     }
 
+    // Load list of students who have frequent absences
     @GetMapping("/often-absent")
     public String oftenAbsent(Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -128,6 +136,7 @@ public class TeacherAttendanceController {
         return "teacher/attendance-often-absent";
     }
 
+    // Show pending attendance correction requests submitted by students
     @GetMapping("/corrections")
     public String corrections(Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -140,18 +149,21 @@ public class TeacherAttendanceController {
         return "teacher/attendance-corrections";
     }
 
+    // Handle approval of a student's correction request
     @PostMapping("/corrections/{id}/approve")
     public String approve(@PathVariable Long id, @RequestParam(required = false) String note,
                           Authentication authentication, RedirectAttributes redirectAttributes) {
         return review(id, true, note, authentication, redirectAttributes);
     }
 
+    // Handle rejection of a student's correction request
     @PostMapping("/corrections/{id}/reject")
     public String reject(@PathVariable Long id, @RequestParam(required = false) String note,
                          Authentication authentication, RedirectAttributes redirectAttributes) {
         return review(id, false, note, authentication, redirectAttributes);
     }
 
+    // Core method to process teacher's review (approve/reject) on correction requests
     private String review(Long id, boolean approve, String note, Authentication authentication, RedirectAttributes redirectAttributes) {
         try {
             attendanceService.reviewCorrection(id, approve, note, currentUser(authentication));
