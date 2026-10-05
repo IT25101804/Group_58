@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: wsims
+
+  # --- Default: in-memory H2 so the project runs instantly with zero setup ---
+  # Browse the DB at http://localhost:8080/h2-console  (JDBC URL: jdbc:h2:mem:wsims)
+  datasource:
+    url: jdbc:h2:mem:wsims;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: Myuser
+    password: "Kavindu2004"
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
+
+# --- To switch to MySQL/PostgreSQL for real deployment, comment the H2 block above
+# and uncomment/edit this one, then add the matching driver is already in pom.xml ---
+# spring:
+#   datasource:
+#     url: jdbc:mysql://localhost:3306/wsims?createDatabaseIfNotExist=true
+#     username: root
+#     password: yourpassword
+#     driver-class-name: com.mysql.cj.jdbc.Driver
+#   jpa:
+#     hibernate:
+#       ddl-auto: update
+#     database-platform: org.hibernate.dialect.MySQLDialect
