@@ -42,7 +42,7 @@ public class AttendanceHistoryController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
-    // Handles the student attendance history view page
+    // [CRUD: READ] Handles fetching and displaying the student's own attendance history and summary
     @GetMapping("/student/attendance")
     public String ownHistory(Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -60,7 +60,7 @@ public class AttendanceHistoryController {
         return "student/attendance";
     }
 
-    // Processes student requests for attendance record corrections
+    // [CRUD: CREATE] Processes and saves a new attendance correction request submitted by a student
     @PostMapping("/student/attendance/correction-request")
     public String requestCorrection(@ModelAttribute AttendanceCorrectionForm form,
                                     Authentication authentication, RedirectAttributes redirectAttributes) {
@@ -75,7 +75,7 @@ public class AttendanceHistoryController {
         return "redirect:/student/attendance";
     }
 
-    // Handles the parent view for linked children's attendance history
+    // [CRUD: READ] Handles fetching and displaying linked children's attendance history for parents
     @GetMapping("/parent/child-attendance")
     public String childrenHistory(Authentication authentication, Model model) {
         User user = currentUser(authentication);
