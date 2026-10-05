@@ -40,7 +40,8 @@ public class TeacherAttendanceController {
         return userRepository.findByUsername(authentication.getName()).orElseThrow();
     }
 
-    @GetMapping//R
+    // [ READ] Fetches and displays student rosters and daily attendance records for a class
+    @GetMapping
     public String view(@RequestParam(required = false) String className,
                        @RequestParam(required = false) String date,
                        Authentication authentication, Model model) {
@@ -95,7 +96,8 @@ public class TeacherAttendanceController {
         return "teacher/attendance";
     }
 
-    @PostMapping("/mark")//CUD — a row's status can create, update, or (submitted blank) delete that day's record
+    // [CREATE, UPDATE, DELETE] Saves, updates, or deletes (if submitted blank) that day's attendance records
+    @PostMapping("/mark")
     public String mark(@RequestParam String className, @RequestParam(required = false) String date,
                        @ModelAttribute("form") AttendanceMarkForm form,
                        Authentication authentication, RedirectAttributes redirectAttributes) {
@@ -123,7 +125,7 @@ public class TeacherAttendanceController {
         }
     }
 
-    // Load list of students who have frequent absences
+    // [READ] Loads the list of students who have frequent absences for reporting views
     @GetMapping("/often-absent")
     public String oftenAbsent(Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -136,7 +138,7 @@ public class TeacherAttendanceController {
         return "teacher/attendance-often-absent";
     }
 
-    // Show pending attendance correction requests submitted by students
+    // [READ] Fetches pending attendance correction requests submitted by students for teacher review
     @GetMapping("/corrections")
     public String corrections(Authentication authentication, Model model) {
         User user = currentUser(authentication);
@@ -149,14 +151,14 @@ public class TeacherAttendanceController {
         return "teacher/attendance-corrections";
     }
 
-    // Handle approval of a student's correction request
+    // [UPDATE] Approves a student's correction request, updating the attendance record status
     @PostMapping("/corrections/{id}/approve")
     public String approve(@PathVariable Long id, @RequestParam(required = false) String note,
                           Authentication authentication, RedirectAttributes redirectAttributes) {
         return review(id, true, note, authentication, redirectAttributes);
     }
 
-    // Handle rejection of a student's correction request
+    // [UPDATE] Rejects a student's correction request, updating its status
     @PostMapping("/corrections/{id}/reject")
     public String reject(@PathVariable Long id, @RequestParam(required = false) String note,
                          Authentication authentication, RedirectAttributes redirectAttributes) {
